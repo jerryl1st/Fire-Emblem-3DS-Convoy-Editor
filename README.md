@@ -9,6 +9,9 @@ or CFW.
 
 # Notes before using
 * ALWAYS BACKUP YOUR SAVE!!!
+* Some DLC items will not work if you don't have certain DLC installed. List of DLC items:
+Pebble, Hero's Brand, Exalt's Brand, Fell Brand, First Blood, Vanguard Brand, Heavy Blade,
+Veteran Intuition, Aether, Warp.
 
 # How to use
 * Extract your save file.
