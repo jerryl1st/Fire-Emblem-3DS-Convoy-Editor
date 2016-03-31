@@ -111,7 +111,7 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 "Dracoshield", "Talisman", "Dragon Herbs", "Boots",
                 "Arms Scroll", "Master Seal", "Heart Seal", "Partner Seal",
                 "Friendship Seal", "Eternal Seal", "Dread Scroll", "Ebon Wing",
-                "Ganglari", "Gold Bar", "Battle Seal", "Visitation Seal",
+                "Ganglari (2)", "Gold Bar", "Battle Seal", "Visitation Seal",
                 "Offspring Seal", "Sighting Lens", "Witch's Mark", "Paragon",
                 "Armor Shield", "Beast Shield", "Winged Shield", "Point Blank",
                 "Bold Stance", "Strengthtaker", "Magictaker", "Skilltaker",
@@ -205,6 +205,17 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 {
                     itemBytes[0x1] = (byte)(value & 0xFF);
                     itemBytes[0x2] = (byte)((value >> 8) & 0xFF);
+                }
+            }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public byte ForgeIndex
+            {
+                get
+                {
+                    return itemBytes[0x3];
                 }
             }
 
@@ -363,22 +374,17 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             }
         }
 
-        private void grayCell(int rowIndex)
+        private void grayCell(int rowIndex, int columnIndex)
         {
-            convoyDataGridView.Rows[rowIndex].Cells[1].ReadOnly = true;
-            convoyDataGridView.Rows[rowIndex].Cells[1].Style = grayCellStyle;
-            convoyDataGridView.Rows[rowIndex].Cells[2].ReadOnly = true;
-            convoyDataGridView.Rows[rowIndex].Cells[2].Style = grayCellStyle;
+            convoyDataGridView.Rows[rowIndex].Cells[columnIndex].ReadOnly = true;
+            convoyDataGridView.Rows[rowIndex].Cells[columnIndex].Style = grayCellStyle;
         }
 
-        private void ungrayCell(int rowIndex)
+        private void ungrayCell(int rowIndex, int columnIndex)
         {
-            convoyDataGridView.Rows[rowIndex].Cells[1].ReadOnly = false;
-            convoyDataGridView.Rows[rowIndex].Cells[1].Style =
-                usesColumn.DefaultCellStyle;
-            convoyDataGridView.Rows[rowIndex].Cells[2].ReadOnly = false;
-            convoyDataGridView.Rows[rowIndex].Cells[2].Style =
-                quantityColumn.DefaultCellStyle;
+            convoyDataGridView.Rows[rowIndex].Cells[columnIndex].ReadOnly = false;
+            convoyDataGridView.Rows[rowIndex].Cells[columnIndex].Style =
+                convoyDataGridView.Columns[columnIndex].DefaultCellStyle;
         }
 
         private void displayItems()
@@ -389,7 +395,16 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 convoyDataGridView.Rows[i].Cells[1].Value = items[i].Uses;
                 convoyDataGridView.Rows[i].Cells[2].Value = items[i].Quantity;
                 if (items[i].ItemIndex == 0)
-                    grayCell(i);
+                {
+                    grayCell(i, 1);
+                    grayCell(i, 2);
+                }
+                if (items[i].ForgeIndex != 0)
+                {
+                    grayCell(i, 0);
+                    grayCell(i, 1);
+                    grayCell(i, 2);
+                }
             }
             dataLoaded = true;
         }
@@ -449,12 +464,14 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                     int itemIndex = Array.IndexOf(Item.ItemNameList, row.Cells[0].Value);
                     row.Cells[1].Value = Item.BaseUses[itemIndex];
                     row.Cells[2].Value = 1;
-                    ungrayCell(e.RowIndex);
+                    ungrayCell(e.RowIndex, 1);
+                    ungrayCell(e.RowIndex, 2);
                 }
                 else
                 {
                     row.Cells[1].Value = row.Cells[2].Value = 0;
-                    grayCell(e.RowIndex);
+                    grayCell(e.RowIndex, 1);
+                    grayCell(e.RowIndex, 2);
                 }
             }
         }
