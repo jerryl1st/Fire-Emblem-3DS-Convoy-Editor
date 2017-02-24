@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace Fire_Emblem_Fates_Convoy_Editor
+namespace Fire_Emblem_3DS_Convoy_Editor
 {
     static class Program
     {

@@ -1,4 +1,4 @@
-﻿namespace Fire_Emblem_Fates_Convoy_Editor
+﻿namespace Fire_Emblem_3DS_Convoy_Editor
 {
     partial class ConvoyEditor
     {
@@ -28,14 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.convoyDataGridView = new System.Windows.Forms.DataGridView();
+            this.openButton = new System.Windows.Forms.Button();
+            this.saveButton = new System.Windows.Forms.Button();
             this.itemNameColumn = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.usesColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.quantityColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.openButton = new System.Windows.Forms.Button();
-            this.saveButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.convoyDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -68,39 +68,6 @@
             this.convoyDataGridView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.convoyDataGridView_CellValueChanged);
             this.convoyDataGridView.CurrentCellDirtyStateChanged += new System.EventHandler(this.convoyDataGridView_CurrentCellDirtyStateChanged);
             // 
-            // itemNameColumn
-            // 
-            this.itemNameColumn.DisplayStyle = System.Windows.Forms.DataGridViewComboBoxDisplayStyle.Nothing;
-            this.itemNameColumn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.itemNameColumn.HeaderText = "Item";
-            this.itemNameColumn.Name = "itemNameColumn";
-            this.itemNameColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.itemNameColumn.Width = 160;
-            // 
-            // usesColumn
-            // 
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.usesColumn.DefaultCellStyle = dataGridViewCellStyle7;
-            this.usesColumn.HeaderText = "Uses";
-            this.usesColumn.MaxInputLength = 2;
-            this.usesColumn.Name = "usesColumn";
-            this.usesColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.usesColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.usesColumn.ToolTipText = "Forge level for forgeable weapons.";
-            this.usesColumn.Width = 48;
-            // 
-            // quantityColumn
-            // 
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.quantityColumn.DefaultCellStyle = dataGridViewCellStyle8;
-            this.quantityColumn.HeaderText = "Qty";
-            this.quantityColumn.MaxInputLength = 2;
-            this.quantityColumn.Name = "quantityColumn";
-            this.quantityColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.quantityColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.quantityColumn.ToolTipText = "Quantity";
-            this.quantityColumn.Width = 48;
-            // 
             // openButton
             // 
             this.openButton.Location = new System.Drawing.Point(12, 12);
@@ -122,6 +89,39 @@
             this.saveButton.Text = "Save";
             this.saveButton.UseVisualStyleBackColor = true;
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            // 
+            // itemNameColumn
+            // 
+            this.itemNameColumn.DisplayStyle = System.Windows.Forms.DataGridViewComboBoxDisplayStyle.Nothing;
+            this.itemNameColumn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.itemNameColumn.HeaderText = "Item";
+            this.itemNameColumn.Name = "itemNameColumn";
+            this.itemNameColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.itemNameColumn.Width = 160;
+            // 
+            // usesColumn
+            // 
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.usesColumn.DefaultCellStyle = dataGridViewCellStyle1;
+            this.usesColumn.HeaderText = "Uses";
+            this.usesColumn.MaxInputLength = 5;
+            this.usesColumn.Name = "usesColumn";
+            this.usesColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.usesColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.usesColumn.ToolTipText = "Forge level for forgeable weapons.";
+            this.usesColumn.Width = 48;
+            // 
+            // quantityColumn
+            // 
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.quantityColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.quantityColumn.HeaderText = "Qty";
+            this.quantityColumn.MaxInputLength = 2;
+            this.quantityColumn.Name = "quantityColumn";
+            this.quantityColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.quantityColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.quantityColumn.ToolTipText = "Quantity";
+            this.quantityColumn.Width = 48;
             // 
             // ConvoyEditor
             // 

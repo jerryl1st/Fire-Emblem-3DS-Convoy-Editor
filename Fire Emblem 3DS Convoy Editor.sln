@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fire Emblem Fates Convoy Editor", "Fire Emblem Fates Convoy Editor\Fire Emblem Fates Convoy Editor.csproj", "{436F072C-B9DE-43F2-A644-86443800CA5F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fire Emblem 3DS Convoy Editor", "Fire Emblem 3DS Convoy Editor\Fire Emblem 3DS Convoy Editor.csproj", "{436F072C-B9DE-43F2-A644-86443800CA5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

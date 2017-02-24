@@ -8,11 +8,12 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 
-namespace Fire_Emblem_Fates_Convoy_Editor
+namespace Fire_Emblem_3DS_Convoy_Editor
 {
     public partial class ConvoyEditor : Form
     {
         private byte[] save;
+        private SaveType saveType;
         private int convoyOffset;
         private Item[] items;
         private short itemCount;
@@ -22,13 +23,106 @@ namespace Fire_Emblem_Fates_Convoy_Editor
         };
         private bool dataLoaded = false;
 
-        private const int MaxItem = 500;
-        private const int Magic = 0x5452414E;
+        private const int MaxItemFates = 500;
+        private const int TranMagic = 0x5452414E;
+        private const int CompMagic = 0x434F4D50;
+        private const int IndeMagic = 0x494E4445;
+        private const int GmapMagic = 0x474D4150; // Awakening only
 
-        #region Item class
+        #region Item classes
         private class Item
         {
-            private byte[] itemBytes;
+            protected byte[] itemBytes;
+
+            public Item()
+            {
+            }
+
+            public Item(byte[] itemBytes)
+            {
+                this.itemBytes = itemBytes;
+            }
+
+            public byte[] ToBytes()
+            {
+                return itemBytes;
+            }
+        }
+
+        /// <summary>
+        /// Item class for Awakening. It only contains quantity value
+        /// </summary>
+        private class ItemAwakening : Item
+        {
+            public static readonly string[] ItemNameList = { "(Unarmed)",
+                "Bronze Sword", "Iron Sword", "Steel Sword", "Silver Sword",
+                "Brave Sword", "Armorslayer", "Wyrmslayer", "Killing Edge",
+                "Levin Sword", "Rapier", "Noble Rapier", "Missiletainn", "Sol",
+                "Amatsu", "Falchion", "Exalted Falchion", "Parallel Falchion",
+                "Mercurius", "Tyrfing", "Mystletainn", "Balmung", "Sol Katti",
+                "Ragnell", "Ragnell (Priam)", "Tree Branch", "Soothing Sword",
+                "Glass Sword", "Superior Edge", "Eliwood's Blade",
+                "Roy's Blade", "Alm's Blade", "Leif's Blade", "Eirika's Blade",
+                "Seliph's Blade", "Bronze Lance", "Iron Lance", "Steel Lance",
+                "Silver Lance", "Brave Lance", "Javelin", "Short Spear",
+                "Spear", "Beast Killer", "Blessed Lance", "Killer Lance",
+                "Luna", "Gradivus", "Gungnir", "Gáe Bolg", "Log",
+                "Miniature Lance", "Shockstick", "Glass Lance",
+                "Superior Lance", "Sigurd's Lance", "Ephraim's Lnce",
+                "Finn's Lance", "Bronze Axe", "Iron Axe", "Steel Axe",
+                "Silver Axe", "Brave Axe", "Hand Axe", "Short Axe", "Tomahawk",
+                "Hammer", "Bolt Axe", "Killer Axe", "Vengeance", "Wolf Berg",
+                "Hauteclere", "Helswath", "Armads", "Ladle", "Imposing Axe",
+                "Volant Axe", "Glass Axe", "Superior Axe", "Titania's Axe",
+                "Orsin's Hatchet", "Hector's Axe", "Bronze Bow", "Iron Bow",
+                "Steel Bow", "Silver Bow", "Brave Bow", "Blessed Bow",
+                "Killer Bow", "Longbow", "Astra", "Parthia", "Yewfelle",
+                "Nidhogg", "Double Bow", "Slack Bow", "Towering Bow",
+                "Underdog Bow", "Glass Bow", "Superior Bow", "Wolt's Bow",
+                "Innes' Bow", "Fire", "Elfire", "Arcfire", "Bolganone",
+                "Valflame", "Thunder", "Elthunder", "Arcthunder", "Thoron",
+                "Mjölnir", "Wind", "Elwind", "Arcwind", "Rexcalibur",
+                "Forseti", "Excalibur", "Book of Naga", "Flux", "Nosferatu",
+                "Ruin", "Waste", "Goetia", "Grima's Truth", "Mire",
+                "Dying Blaze", "Micaiah's Pyre", "Superior Jolt",
+                "Katarina's Bolt", "Wilderwind", "Celica's Gale",
+                "Aversa's Night", "Heal", "Mend", "Physic", "Recover",
+                "Fortify", "Goddess Staff", "Rescue", "Ward", "Hammerne",
+                "Kneader", "Balmwood Staff", "Catharsis", "Dragonstone",
+                "Dragonstone+", "Beaststone", "Beaststone+", "Blighted Claws",
+                "Blighted Talons", "Expiration", "Vulnerary", "Concoction",
+                "Elixir", "Pure Water", "HP Tonic", "Strength Tonic",
+                "Magic Tonic", "Skill Tonic", "Speed Tonic", "Luck Tonic",
+                "Defense Tonic", "Resistance Tonic", "Door Key", "Chest Key",
+                "Master Key", "Seraph Robe", "Energy Drop", "Spirit Dust",
+                "Secret Book", "Speedwing", "Goddess Icon", "Dracoshield",
+                "Talisman", "Naga's Tear", "Boots", "Arms Scroll",
+                "Master Seal", "Second Seal", "Bullion (S)", "Bullion (M)",
+                "Bullion (L)", "Sweet Tincture", "Gaius's Confect",
+                "Kris's Confect", "Tiki's Tear", "Seed of Trust",
+                "Reeking Box", "Rift Door", "Supreme Emblem", "All Stats +2",
+                "Paragon", "Iote's Shield", "Limit Breaker", "Silver Card",
+                "Dread Scroll", "Wedding Bouquet", "1,000 Gold", "3,000 Gold",
+                "5,000 Gold", "7,000 Gold" };
+
+            public ItemAwakening()
+            {
+                this.itemBytes = new byte[] { 0, 0 };
+            }
+
+            public ItemAwakening(byte[] itemBytes) : base(itemBytes)
+            {
+            }
+
+            public ushort Uses
+            {
+                get { return BitConverter.ToUInt16(itemBytes, 0); }
+                set { itemBytes = BitConverter.GetBytes(value); }
+            }
+        }
+
+        private class ItemFates : Item
+        {
             public static readonly string[] ItemNameList = { "None",
                 "Bronze Sword", "Iron Sword", "Steel Sword", "Silver Sword",
                 "Brave Sword", "Iron Kukri", "Steel Kukri", "Silver Kukri",
@@ -41,13 +135,14 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 "Practice Katana", "Spirit Katana", "Hagakure Blade", "Yato",
                 "Noble Yato", "Blazing Yato", "Grim Yato", "Shadow Yato",
                 "Alpha Yato", "Omega Yato", "Raijinto", "Daikon Radish",
-                "Parasol", "Raider Katana", "Sunrise Katana", "Takumi's Shinai",
-                "Hana's Katana", "Hinata's Katana", "Bronze Lance", "Iron Lance",
-                "Steel Lance", "Silver Lance", "Brave Lance", "Iron Javelin",
-                "Steel Javelin", "Silver Javelin", "Javelin", "Spear",
-                "Beast Killer", "Killer Lance", "Blessed Lance", "Broom",
-                "Stick", "Hexlock Spear", "Xander's Lance", "Effie's Lance",
-                "Peri's Lance", "Brass Naginata", "Iron Naginata", 
+                "Parasol", "Raider Katana", "Sunrise Katana",
+                "Takumi's Shinai", "Hana's Katana", "Hinata's Katana",
+                "Bronze Lance", "Iron Lance", "Steel Lance", "Silver Lance",
+                "Brave Lance", "Iron Javelin", "Steel Javelin",
+                "Silver Javelin", "Javelin", "Spear", "Beast Killer",
+                "Killer Lance", "Blessed Lance", "Broom", "Stick",
+                "Hexlock Spear", "Xander's Lance", "Effie's Lance",
+                "Peri's Lance", "Brass Naginata", "Iron Naginata",
                 "Steel Naginata", "Silver Naginata", "Venge Naginata",
                 "Iron Nageyari", "Steel Nageyari", "Silver Nageyari",
                 "Swordcatcher", "Dual Naginata", "Guard Naginata",
@@ -64,58 +159,60 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 "Battering Club", "Pike-Ruin Club", "Dual Club", "Great Club",
                 "Carp Streamer", "Hoe", "Adamant Club", "Rinkah's Club",
                 "Ryoma's Club", "Fuga's Club", "Bronze Dagger", "Iron Dagger",
-                "Steel Dagger", "Silver Dagger", "Soldier's Knife", "Fruit Knife",
-                "Hunter's Knife", "Kris Knife", "Quill Pen", "Stale Bread",
-                "Raider Knife", "Votive Candle", "Sacrificial Knife",
-                "Felicia's Plate", "Jakob's Tray", "Brass Shuriken",
-                "Iron Shuriken", "Steel Shuriken", "Silver Shuriken",
-                "Spy's Shuriken", "Dual Shuriken", "Sting Shuriken",
-                "Barb Shuriken", "Flame Shuriken", "Chakram", "Chopstick",
-                "Hair Pin", "Caltrop", "Kaze's Needle", "Saizo's Star", 
-                "Kagero's Dart", "Bronze Bow", "Iron Bow", "Steel Bow",
-                "Silver Bow", "Crescent Bow", "Iron Shortbow", "Steel Shortbow",
-                "Silver Shortbow", "Mini Bow", "Killer Bow", "Blessed Bow",
-                "Shining Bow", "Rubber Bow", "Violin Bow", "Cupid Bow",
-                "Hunter's Bow", "Anna's Bow", "Niles's Bow", "Brass Yumi",
-                "Iron Yumi", "Steel Yumi", "Silver Yumi", "Spy's Yumi",
-                "Iron Hankyu", "Steel Hankyu", "Silver Hankyu", "Dual Yumi",
-                "Illusory Yumi", "Surefire Yumi", "Pursuer", "Fujin Yumi",
-                "Fujin Yumi", "Skadi", "Bamboo Yumi", "Harp Yumi",
-                "Raider Yumi", "Spellbane Yumi", "Sidelong Yumi",
+                "Steel Dagger", "Silver Dagger", "Soldier's Knife",
+                "Fruit Knife", "Hunter's Knife", "Kris Knife", "Quill Pen",
+                "Stale Bread", "Raider Knife", "Votive Candle",
+                "Sacrificial Knife", "Felicia's Plate", "Jakob's Tray",
+                "Brass Shuriken", "Iron Shuriken", "Steel Shuriken",
+                "Silver Shuriken", "Spy's Shuriken", "Dual Shuriken",
+                "Sting Shuriken", "Barb Shuriken", "Flame Shuriken", "Chakram",
+                "Chopstick", "Hair Pin", "Caltrop", "Kaze's Needle",
+                "Saizo's Star", "Kagero's Dart", "Bronze Bow", "Iron Bow",
+                "Steel Bow", "Silver Bow", "Crescent Bow", "Iron Shortbow",
+                "Steel Shortbow", "Silver Shortbow", "Mini Bow", "Killer Bow",
+                "Blessed Bow", "Shining Bow", "Rubber Bow", "Violin Bow",
+                "Cupid Bow", "Hunter's Bow", "Anna's Bow", "Niles's Bow",
+                "Brass Yumi", "Iron Yumi", "Steel Yumi", "Silver Yumi",
+                "Spy's Yumi", "Iron Hankyu", "Steel Hankyu", "Silver Hankyu",
+                "Dual Yumi", "Illusory Yumi", "Surefire Yumi", "Pursuer",
+                "Fujin Yumi (Bronze)", "Fujin Yumi", "Skadi", "Bamboo Yumi",
+                "Harp Yumi", "Raider Yumi", "Spellbane Yumi", "Sidelong Yumi",
                 "Mikoto's Yumi", "Setsuna's Yumi", "Fire", "Thunder",
-                "Fimbulvetr", "Ragnarok", "Ginnungagap", "Lightning", "Mjölnir",
-                "Nosferatu", "Excalibur", "Brynhildr", "Ember", "Missiletainn",
-                "Disrobing Gale", "Speed Thunder", "Moonlight", "Iago's Tome",
-                "Odin's Grimoire", "Rat Spirit", "Ox Spirit", "Tiger Spirit",
-                "Rabbit Spirit", "Dragon Spirit", "Calamity Gate", "Snake Spirit",
-                "Horse Spirit", "Sheep Spirit", "Paper", "Malevolent Text",
-                "Monkey Spirit", "Bird Spirit", "Ink Painting", "Izana's Scroll",
-                "Heal", "Mend", "Physic", "Recover", "Fortify", "Freeze",
-                "Enfeeble", "Entrap", "Entrap (2)", "Bifröst", "Candy Cane",
+                "Fimbulvetr", "Ragnarok", "Ginnungagap", "Lightning",
+                "Mjölnir", "Nosferatu", "Excalibur", "Brynhildr", "Ember",
+                "Missiletainn", "Disrobing Gale", "Speed Thunder", "Moonlight",
+                "Iago's Tome", "Odin's Grimoire", "Rat Spirit", "Ox Spirit",
+                "Tiger Spirit", "Rabbit Spirit", "Dragon Spirit",
+                "Calamity Gate", "Snake Spirit", "Horse Spirit",
+                "Sheep Spirit", "Paper", "Malevolent Text", "Monkey Spirit",
+                "Bird Spirit", "Ink Painting", "Izana's Scroll", "Heal",
+                "Mend", "Physic", "Recover", "Fortify", "Freeze", "Enfeeble",
+                "Entrap", "Entrap (2)", "Bifröst", "Candy Cane",
                 "Mushroom Staff", "Bouquet Staff", "Elise's Staff",
                 "Lilith's Staff", "Bloom Festal", "Sun Festal", "Wane Festal",
-                "Moon Festal", "Great Festal", "Rescue", "Silence", "Hexing Rod",
-                "Lantern", "Dumpling Rod", "Bamboo Branch", "Sakura's Rod",
-                "Purification Rod", "Dragonstone", "Dragonstone+", "Beaststone",
-                "Beastrune", "Beaststone+", "Draconic Rage", "Dark Breath",
-                "Invisible's Breath", "Invisible's Breath (2)", "Shackled Fist",
-                "Gauntlet", "Rock", "Massive Rock", "Astral Breath",
-                "Astral Blessing", "Vulnerary", "Concoction", "Elixir",
-                "HP Tonic", "Strength Tonic", "Magic Tonic", "Skill Tonic",
-                "Speed Tonic", "Luck Tonic", "Defense Tonic",
-                "Resistance Tonic", "Azura's Salve", "Gunter's Potion",
-                "Asugi's Confect", "Rainbow Tonic", "Seed of Trust",
-                "Allegro Harp", "Shell Horn", "Saw", "Big Saw", "Door Key",
-                "Chest Key", "Master Key", "Seraph Robe", "Energy Drop",
-                "Spirit Dust", "Secret Book", "Speedwing", "Goddess Icon",
-                "Dracoshield", "Talisman", "Dragon Herbs", "Boots",
-                "Arms Scroll", "Master Seal", "Heart Seal", "Partner Seal",
-                "Friendship Seal", "Eternal Seal", "Dread Scroll", "Ebon Wing",
-                "Ganglari (2)", "Gold Bar", "Battle Seal", "Visitation Seal",
-                "Offspring Seal", "Sighting Lens", "Witch's Mark", "Paragon",
-                "Armor Shield", "Beast Shield", "Winged Shield", "Point Blank",
-                "Bold Stance", "Strengthtaker", "Magictaker", "Skilltaker",
-                "Speedtaker", "Lucktaker", "Defensetaker", "Resistancetaker",
+                "Moon Festal", "Great Festal", "Rescue", "Silence",
+                "Hexing Rod", "Lantern", "Dumpling Rod", "Bamboo Branch",
+                "Sakura's Rod", "Purification Rod", "Dragonstone",
+                "Dragonstone+", "Beaststone", "Beastrune", "Beaststone+",
+                "Draconic Rage", "Dark Breath", "Dragon Breath",
+                "Dragon Breath (2)", "Shackled Fist", "Gauntlet", "Rock",
+                "Massive Rock", "Astral Breath", "Astral Blessing",
+                "Vulnerary", "Concoction", "Elixir", "HP Tonic",
+                "Strength Tonic", "Magic Tonic", "Skill Tonic", "Speed Tonic",
+                "Luck Tonic", "Defense Tonic", "Resistance Tonic",
+                "Azura's Salve", "Gunter's Potion", "Asugi's Confect",
+                "Rainbow Tonic", "Seed of Trust", "Allegro Harp", "Shell Horn",
+                "Saw", "Big Saw", "Door Key", "Chest Key", "Master Key",
+                "Seraph Robe", "Energy Drop", "Spirit Dust", "Secret Book",
+                "Speedwing", "Goddess Icon", "Dracoshield", "Talisman",
+                "Dragon Herbs", "Boots", "Arms Scroll", "Master Seal",
+                "Heart Seal", "Partner Seal", "Friendship Seal",
+                "Eternal Seal", "Dread Scroll", "Ebon Wing", "Ganglari (2)",
+                "Gold Bar", "Battle Seal", "Visitation Seal", "Offspring Seal",
+                "Sighting Lens", "Witch's Mark", "Paragon", "Armor Shield",
+                "Beast Shield", "Winged Shield", "Point Blank", "Bold Stance",
+                "Strengthtaker", "Magictaker", "Skilltaker", "Speedtaker",
+                "Lucktaker", "Defensetaker", "Resistancetaker",
                 "Master Emblem", "Falchion", "Ragnell", "Parallel Falchion",
                 "Thoron", "Marth's Spatha", "Ike's Backup", "Lucina's Estoc",
                 "Robin's Primer", "1000G", "2000G", "3000G", "5000G", "7000G",
@@ -182,14 +279,13 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                 0x10, 0x16A, 0x74, 0x19, 0x4A, 0x16C, 0xAF, 0x141, 0x8E, 0x115,
                 0x1E, 0xFB, 0x189, 0x52, 0x148, 0x144, 0xA, 0x43, 0x24 };
 
-            public Item()
+            public ItemFates()
             {
                 itemBytes = new byte[] { 0, 0, 0, 0, 0, 0, 0 };
             }
 
-            public Item(byte[] itemBytes)
+            public ItemFates(byte[] itemBytes) : base(itemBytes)
             {
-                this.itemBytes = itemBytes;
             }
 
             /// <summary>
@@ -259,17 +355,10 @@ namespace Fire_Emblem_Fates_Convoy_Editor
                     return ItemNameList[this.ItemIndex];
                 }
             }
-
-            /// <summary>
-            /// Return the backed up array.
-            /// </summary>
-            /// <returns></returns>
-            public byte[] ToArray()
-            {
-                return itemBytes;
-            }
         }
         #endregion
+
+        public enum SaveType { Awakening, Fates }
 
         public ConvoyEditor()
         {
@@ -291,6 +380,19 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             openFileDialog.Filter = "All Files (*.*)|*.*";
             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
             loadSave(openFileDialog.FileName);
+
+            // Check Awakening / Fates
+            if (getOffset(GmapMagic) == 0)
+            {
+                loadItemsFates();
+                saveType = SaveType.Fates;
+            }
+            else
+            {
+                loadItemsAwakening();
+                saveType = SaveType.Awakening;
+            }
+            enableButtons();
         }
 
         // Load save file
@@ -306,16 +408,16 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             {
                 br.Read(header, 0, 0xC0);
                 magic = br.ReadInt32();
-                if (magic == 0x434F4D50) // "COMP", compressed save
+                if (magic == CompMagic) // "COMP", compressed save
                 {
                     byte[] compressed = new byte[length - 0xD0];
                     br.BaseStream.Seek(0xD0, SeekOrigin.Begin);
                     br.Read(compressed, 0x0, length - 0xD0);
                     decompressed = new Huffman8().Decompress(compressed);
-                    if (BitConverter.ToInt32(decompressed, 0x0) == 0x494E4445)
+                    if (BitConverter.ToInt32(decompressed, 0x0) == IndeMagic)
                         isValidSave = true;
                 }
-                else if (magic == 0x494E4445) // "INDE", decompressed save
+                else if (magic == IndeMagic) // "INDE", decompressed save
                 {
                     decompressed = new byte[length - 0xC0];
                     br.BaseStream.Seek(0xC0, SeekOrigin.Begin);
@@ -332,13 +434,20 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             save = new byte[header.Length + decompressed.Length];
             Array.Copy(header, 0, save, 0, header.Length);
             Array.Copy(decompressed, 0, save, header.Length, decompressed.Length);
+        }
 
-            loadItems();
-            for (int i = 0; i < Item.SortedItemList.Length; i++)
-                itemNameColumn.Items.Add(Item.ItemNameList[Item.SortedItemList[i]]);
-            convoyDataGridView.Rows.Add(MaxItem);
-            displayItems();
-            enableButtons();
+        // Get offset based on magic number
+        private int getOffset(int magic)
+        {
+            int firstOffset = BitConverter.ToInt32(save, 0xC4);
+            for (int ofs = 0xC4; ofs < firstOffset; ofs += 4)
+            {
+                int offset = BitConverter.ToInt32(save, ofs);
+                int value = BitConverter.ToInt32(save, offset);
+                if (offset != 0 && value == magic)
+                    return offset;
+            }
+            return 0;
         }
 
         // Activate buttons after loading.
@@ -347,31 +456,76 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             saveButton.Enabled = true;
         }
 
-        // Load item data from save file
-        private void loadItems()
+        // Load item data from Awakening save file
+        private void loadItemsAwakening()
         {
-            for (int i = 0; i < 28; i++)
+            convoyOffset = getOffset(TranMagic);
+            itemCount = BitConverter.ToInt16(save, convoyOffset + 0x5);
+            items = new ItemAwakening[itemCount];
+            for (int i = 0; i < itemCount; i++)
             {
-                int offset = BitConverter.ToInt32(save, 0xC4 + i * 4);
-                if ((offset != 0) &&
-                    (BitConverter.ToInt32(save, offset) == Magic))
-                {
-                    convoyOffset = offset;
-                }
+                byte[] itemBytes = new byte[2];
+                Array.Copy(save, convoyOffset + 0x7 + i * 2, itemBytes, 0, 2);
+                items[i] = new ItemAwakening(itemBytes);
             }
 
+            // Display
+            itemNameColumn.Items.AddRange(ItemAwakening.ItemNameList);
+            quantityColumn.Visible = false;
+            convoyDataGridView.Rows.Add(ItemAwakening.ItemNameList.Length);
+            dataLoaded = false;
+            for (int i = 0; i < ItemAwakening.ItemNameList.Length; i++)
+            {
+                ItemAwakening item = (ItemAwakening)items[i];
+                convoyDataGridView.Rows[i].Cells[0].Value = ItemAwakening.ItemNameList[i];
+                convoyDataGridView.Rows[i].Cells[1].Value = item.Uses;
+                grayCell(i, 0);
+            }
+            dataLoaded = true;
+        }
+
+        // Load item data from save file
+        private void loadItemsFates()
+        {
+            convoyOffset = getOffset(TranMagic);
             itemCount = BitConverter.ToInt16(save, convoyOffset + 0x5);
-            items = new Item[MaxItem];
+            items = new ItemFates[MaxItemFates];
             for (int i = 0; i < itemCount; i++)
             {
                 byte[] itemBytes = new byte[7];
                 Array.Copy(save, convoyOffset + 0x7 + i * 7, itemBytes, 0, 7);
-                items[i] = new Item(itemBytes);
+                items[i] = new ItemFates(itemBytes);
             }
-            for (int i = itemCount; i < MaxItem; i++)
+            for (int i = itemCount; i < MaxItemFates; i++)
             {
-                items[i] = new Item();
+                items[i] = new ItemFates();
             }
+
+            // Display
+            for (int i = 0; i < ItemFates.SortedItemList.Length; i++)
+                itemNameColumn.Items.Add(ItemFates.ItemNameList[ItemFates.SortedItemList[i]]);
+            quantityColumn.Visible = true;
+            convoyDataGridView.Rows.Add(MaxItemFates);
+            dataLoaded = false;
+            for (int i = 0; i < items.Length; i++)
+            {
+                ItemFates item = (ItemFates)items[i];
+                convoyDataGridView.Rows[i].Cells[0].Value = item.ItemName;
+                convoyDataGridView.Rows[i].Cells[1].Value = item.Uses;
+                convoyDataGridView.Rows[i].Cells[2].Value = item.Quantity;
+                if (item.ItemIndex == 0)
+                {
+                    grayCell(i, 1);
+                    grayCell(i, 2);
+                }
+                if (item.ForgeIndex != 0)
+                {
+                    grayCell(i, 0);
+                    grayCell(i, 1);
+                    grayCell(i, 2);
+                }
+            }
+            dataLoaded = true;
         }
 
         private void grayCell(int rowIndex, int columnIndex)
@@ -385,28 +539,6 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             convoyDataGridView.Rows[rowIndex].Cells[columnIndex].ReadOnly = false;
             convoyDataGridView.Rows[rowIndex].Cells[columnIndex].Style =
                 convoyDataGridView.Columns[columnIndex].DefaultCellStyle;
-        }
-
-        private void displayItems()
-        {
-            for (int i = 0; i < items.Length; i++)
-            {
-                convoyDataGridView.Rows[i].Cells[0].Value = items[i].ItemName;
-                convoyDataGridView.Rows[i].Cells[1].Value = items[i].Uses;
-                convoyDataGridView.Rows[i].Cells[2].Value = items[i].Quantity;
-                if (items[i].ItemIndex == 0)
-                {
-                    grayCell(i, 1);
-                    grayCell(i, 2);
-                }
-                if (items[i].ForgeIndex != 0)
-                {
-                    grayCell(i, 0);
-                    grayCell(i, 1);
-                    grayCell(i, 2);
-                }
-            }
-            dataLoaded = true;
         }
 
         private uint getChecksum(byte[] data) // It's just CRC32.
@@ -434,6 +566,7 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             return ~checksum;
         }
 
+        #region convoyDataGridView
         // Show a dropdown list when clicking to item column
         private void convoyDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -459,10 +592,10 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             if (e.ColumnIndex == 0)
             {
                 DataGridViewRow row = convoyDataGridView.Rows[e.RowIndex];
-                if ((string)row.Cells[0].Value != Item.ItemNameList[0])
+                if ((string)row.Cells[0].Value != ItemFates.ItemNameList[0])
                 {
-                    int itemIndex = Array.IndexOf(Item.ItemNameList, row.Cells[0].Value);
-                    row.Cells[1].Value = Item.BaseUses[itemIndex];
+                    int itemIndex = Array.IndexOf(ItemFates.ItemNameList, row.Cells[0].Value);
+                    row.Cells[1].Value = ItemFates.BaseUses[itemIndex];
                     row.Cells[2].Value = 1;
                     ungrayCell(e.RowIndex, 1);
                     ungrayCell(e.RowIndex, 2);
@@ -480,61 +613,109 @@ namespace Fire_Emblem_Fates_Convoy_Editor
         private void convoyDataGridView_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
             if (!dataLoaded) return;
-            if ((e.ColumnIndex == 1) || (e.ColumnIndex == 2))
+            if ((e.ColumnIndex == 1 && saveType == SaveType.Fates) || e.ColumnIndex == 2)
             {
-                byte value;
-                bool isValidByte = Byte.TryParse(e.FormattedValue.ToString(), out value);
-                if (isValidByte)
+                try
                 {
+                    Byte.Parse(e.FormattedValue.ToString());
                     convoyDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = null;
                 }
-                else
+                catch (Exception)
                 {
-                    convoyDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText =
-                        "Invalid number.";
+                    convoyDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Invalid number";
+                    convoyDataGridView.CancelEdit();
+                }
+            }
+            if (e.ColumnIndex == 1 && saveType == SaveType.Awakening)
+            {
+                try
+                {
+                    UInt16.Parse(e.FormattedValue.ToString());
+                    convoyDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = null;
+                }
+                catch (Exception)
+                {
+                    convoyDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Invalid number";
                     convoyDataGridView.CancelEdit();
                 }
             }
         }
+        #endregion
 
         // Save item data to the main save
-        private void saveItems()
+        private void saveItemsAwakening()
         {
-            byte[] itemBytes;
-            short editedItemCount = 0;
+            byte[] itemsBytes;
             using (MemoryStream ms = new MemoryStream())
             {
-                for (int i = 0; i < MaxItem; i++)
+                for (int i = 0; i < ItemAwakening.ItemNameList.Length; i++)
                 {
-                    int itemIndex = Array.IndexOf(Item.ItemNameList,
-                        convoyDataGridView.Rows[i].Cells[0].Value.ToString());
-                    if (itemIndex != 0)
+                    ItemAwakening item = (ItemAwakening)items[i];
+                    try
                     {
-                        items[i].ItemIndex = (short)itemIndex;
-                        byte value;
-                        bool isValid;
-                        isValid = Byte.TryParse(convoyDataGridView.Rows[i].Cells[1].Value.ToString(),
-                            out value);
-                        items[i].Uses = value;
-                        isValid = Byte.TryParse(convoyDataGridView.Rows[i].Cells[2].Value.ToString(),
-                            out value);
-                        items[i].Quantity = value;
-                        ms.Write(items[i].ToArray(), 0x0, 7);
-                        editedItemCount++;
+                        item.Uses = UInt16.Parse(convoyDataGridView.Rows[i].Cells[1].Value.ToString());
                     }
+                    catch (Exception)
+                    {
+                    }
+                    ms.Write(item.ToBytes(), 0x0, 2);
                 }
-                itemBytes = ms.ToArray();
+                itemsBytes = ms.ToArray();
             }
 
             // Reconstruct the save file with new data
             using (MemoryStream ms = new MemoryStream())
             {
-                fixOffsets(convoyOffset, itemBytes.Length - itemCount * 7);
                 ms.Write(save, 0x0, convoyOffset);
-                ms.Write(BitConverter.GetBytes(Magic), 0x0, 4);
+                ms.Write(BitConverter.GetBytes(TranMagic), 0x0, 4);
+                ms.WriteByte(0x4);
+                ms.Write(BitConverter.GetBytes(ItemAwakening.ItemNameList.Length + 150), 0x0, 2);
+                ms.Write(itemsBytes, 0x0, itemsBytes.Length);
+                int remainingOffset = convoyOffset + 7 + 2 * ItemAwakening.ItemNameList.Length;
+                ms.Write(save, remainingOffset, save.Length - remainingOffset);
+                save = ms.ToArray();
+            }
+        }
+
+        // Save item data to the main save
+        private void saveItemsFates()
+        {
+            byte[] itemsBytes;
+            short editedItemCount = 0;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                for (int i = 0; i < MaxItemFates; i++)
+                {
+                    ItemFates item = (ItemFates)items[i];
+                    int itemIndex = Array.IndexOf(ItemFates.ItemNameList,
+                        convoyDataGridView.Rows[i].Cells[0].Value.ToString());
+                    if (itemIndex != 0)
+                    {
+                        item.ItemIndex = (short)itemIndex;
+                        try
+                        {
+                            item.Uses = Byte.Parse(convoyDataGridView.Rows[i].Cells[1].Value.ToString());
+                            item.Quantity = Byte.Parse(convoyDataGridView.Rows[i].Cells[2].Value.ToString());
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        ms.Write(item.ToBytes(), 0x0, 7);
+                        editedItemCount++;
+                    }
+                }
+                itemsBytes = ms.ToArray();
+            }
+
+            // Reconstruct the save file with new data
+            using (MemoryStream ms = new MemoryStream())
+            {
+                fixOffsets(convoyOffset, itemsBytes.Length - itemCount * 7);
+                ms.Write(save, 0x0, convoyOffset);
+                ms.Write(BitConverter.GetBytes(TranMagic), 0x0, 4);
                 ms.WriteByte(0x0);
                 ms.Write(BitConverter.GetBytes(editedItemCount), 0x0, 2);
-                ms.Write(itemBytes, 0x0, itemBytes.Length);
+                ms.Write(itemsBytes, 0x0, itemsBytes.Length);
                 int remainingOffset = (convoyOffset) + 7 * (itemCount + 1);
                 ms.Write(save, remainingOffset, save.Length - remainingOffset);
                 save = ms.ToArray();
@@ -544,14 +725,12 @@ namespace Fire_Emblem_Fates_Convoy_Editor
         // Fix offsets
         private void fixOffsets(int offset, int change)
         {
-            for (int i = 0; i < 28; i++)
+            int firstOffset = BitConverter.ToInt32(save, 0xC4);
+            for (int ofs = 0xC4; ofs < firstOffset; ofs += 4)
             {
-                int tempOffset = BitConverter.ToInt32(save, 0xC4 + i * 4);
+                int tempOffset = BitConverter.ToInt32(save, ofs);
                 if (tempOffset > offset)
-                {
-                    Array.Copy(BitConverter.GetBytes(tempOffset + change), 0,
-                        save, 0xC4 + i * 4, 4);
-                }
+                    Array.Copy(BitConverter.GetBytes(tempOffset + change), 0, save, ofs, 4);
             }
         }
 
@@ -561,7 +740,10 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             saveFileDialog.Filter = "All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
 
-            saveItems();
+            if (saveType == SaveType.Fates)
+                saveItemsFates();
+            else
+                saveItemsAwakening();
 
             // Compress
             byte[] decompressed = new byte[save.Length - 0xC0];
@@ -573,7 +755,7 @@ namespace Fire_Emblem_Fates_Convoy_Editor
             using (BinaryWriter bw = new BinaryWriter(fs))
             {
                 bw.Write(save, 0x0, 0xC0);
-                bw.Write(0x434F4D50); // "COMP"
+                bw.Write(CompMagic); // "COMP"
                 bw.Write(0x00000002); // Huffman-8 compression
                 bw.Write(save.Length - 0xC0);
                 bw.Write(getChecksum(save));

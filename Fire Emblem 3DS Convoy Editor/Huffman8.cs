@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 
-namespace Fire_Emblem_Fates_Convoy_Editor
+namespace Fire_Emblem_3DS_Convoy_Editor
 {
     public class Huffman8
     {
