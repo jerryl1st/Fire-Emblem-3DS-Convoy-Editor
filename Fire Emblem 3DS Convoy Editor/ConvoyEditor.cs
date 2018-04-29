@@ -10,7 +10,7 @@ using System.IO;
 
 namespace Fire_Emblem_3DS_Convoy_Editor
 {
-    public partial class ConvoyEditor : Form
+    public partial class ConvoyEditor : MetroFramework.Forms.MetroForm
     {
         private byte[] save;
         private SaveType saveType;
@@ -146,10 +146,10 @@ namespace Fire_Emblem_3DS_Convoy_Editor
                 "Steel Naginata", "Silver Naginata", "Venge Naginata",
                 "Iron Nageyari", "Steel Nageyari", "Silver Nageyari",
                 "Swordcatcher", "Dual Naginata", "Guard Naginata",
-                "Bolt Naginata", "Waterwheel", "Bamboo Pole", "Pine Branch", 
+                "Bolt Naginata", "Waterwheel", "Bamboo Pole", "Pine Branch",
                 "Raider Naginata", "Bold Naginata", "Hinoka's Spear",
                 "Subaki's Pike", "Oboro's Spear", "Bronze Axe", "Iron Axe",
-                "Steel Axe", "Silver Axe", "Brave Axe", "Iron Star Axe", 
+                "Steel Axe", "Silver Axe", "Brave Axe", "Iron Star Axe",
                 "Steel Star Axe", "Silver Star Axe", "Hand Axe", "Tomahawk",
                 "Hammer", "Bolt Axe", "Killer Axe", "Aurgelmir", "Bölverk",
                 "Frying Pan", "Bone Axe", "Raider Axe", "Berserker's Axe",
@@ -374,21 +374,24 @@ namespace Fire_Emblem_3DS_Convoy_Editor
         }
 
         // Load save file
-        private void openButton_Click(object sender, EventArgs e)
+        private void loadBtn_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "All Files (*.*)|*.*";
+            openFileDialog.RestoreDirectory = true;
             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
             loadSave(openFileDialog.FileName);
 
             // Check Awakening / Fates
             if (getOffset(GmapMagic) == 0)
             {
+                ConvoyEditor.ActiveForm.Text = "FA Fates";
                 loadItemsFates();
                 saveType = SaveType.Fates;
             }
             else
             {
+                ConvoyEditor.ActiveForm.Text = "FA Awakening";
                 loadItemsAwakening();
                 saveType = SaveType.Awakening;
             }
@@ -453,7 +456,7 @@ namespace Fire_Emblem_3DS_Convoy_Editor
         // Activate buttons after loading.
         private void enableButtons()
         {
-            saveButton.Enabled = true;
+            saveBtn.Enabled = true;
         }
 
         // Load item data from Awakening save file
@@ -736,6 +739,36 @@ namespace Fire_Emblem_3DS_Convoy_Editor
 
         private void saveButton_Click(object sender, EventArgs e)
         {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "All files (*.*)|*.*";
+            if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            if (saveType == SaveType.Fates)
+                saveItemsFates();
+            else
+                saveItemsAwakening();
+
+            // Compress
+            byte[] decompressed = new byte[save.Length - 0xC0];
+            Array.Copy(save, 0xC0, decompressed, 0x0, save.Length - 0xC0);
+            byte[] compressed = new Huffman8().Compress(decompressed);
+
+            // Write
+            using (FileStream fs = new FileStream(saveFileDialog.FileName, FileMode.Create, FileAccess.Write))
+            using (BinaryWriter bw = new BinaryWriter(fs))
+            {
+                bw.Write(save, 0x0, 0xC0);
+                bw.Write(CompMagic); // "COMP"
+                bw.Write(0x00000002); // Huffman-8 compression
+                bw.Write(save.Length - 0xC0);
+                bw.Write(getChecksum(save));
+                bw.Write(compressed);
+            }
+        }
+
+        private void saveBtn_Click(object sender, EventArgs e)
+        {
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
