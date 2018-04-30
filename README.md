@@ -23,17 +23,24 @@ forging your weapons and use enemy-only / unreleased items). As long as your ite
 https://github.com/RainThunder/Fire-Emblem-Fates-Convoy-Editor/releases
 
 # How to use
+For 3DS :
 * Extract your save file using your favorite 3DS save tool.
 * Copy that save from your 3DS to your PC.
 * Run this software.
-* Click **Open**, then choose a "Chapter*" file from the extracted save.
+* Click **Load**, then choose a "Chapter*" file from the extracted save.
 * Edit the items.
 * Click **Save** button after editing. Your save file will be **automatically compressed**.
 * Copy the compressed save to your 3DS.
 * Import your save back into the game.
 
+For Citra Emulator:
+* Run this software
+* Click **Load**, then choose a "Chapter*" file from citra's save location (Usually in %appdata%/Citra/sdmc/Nintendo 3DS)
+* Edit the items.
+* Click **Save** button after editing.
+
 # Screenshots
-![Main](http://i.imgur.com/0mBrWok.png)
+![Main](https://i.imgur.com/NFkvlBy.png)
 
 # License
 * [Huffman](http://www.romhacking.net/utilities/826/) by CUE is licensed under GPL v3.
